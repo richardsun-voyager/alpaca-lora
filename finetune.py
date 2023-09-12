@@ -27,7 +27,7 @@ from utils.prompter import Prompter
 
 def train(
     # model/data params
-    base_model: str = "",  # the only required argument
+    base_model: str = "meta-llama/Llama-2-70b-chat-hf",  # the only required argument
     data_path: str = "yahma/alpaca-cleaned",
     output_dir: str = "./lora-alpaca",
     # training hyperparams
@@ -111,12 +111,17 @@ def train(
 
     model = LlamaForCausalLM.from_pretrained(
         base_model,
-        load_in_8bit=False,
+        load_in_8bit=True,
         torch_dtype=torch.bfloat16,
-        device_map=device_map,
+        device_map='auto',#device_map,
+        use_safetensors=False,##added by xbsun
+        use_auth_token='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', ##added by xbsun
+        cache_dir="../llm_weights/",##added by xbsun
     )
 
-    tokenizer = LlamaTokenizer.from_pretrained(base_model)
+    tokenizer = LlamaTokenizer.from_pretrained(base_model,
+                                              use_auth_token='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',##added by xbsun
+                                              cache_dir="../llm_weights/")##added by xbsun
 
     tokenizer.pad_token_id = (
         0  # unk. we want this to be different from the eos token
@@ -171,7 +176,7 @@ def train(
             ]  # could be sped up, probably
         return tokenized_full_prompt
 
-    model = prepare_model_for_int8_training(model)
+    # model = prepare_model_for_int8_training(model)
 
     config = LoraConfig(
         r=lora_r,
